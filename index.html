@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Test 06: Buffer Geometry</title>
+    <script src="scripts/three.js"></script>
+    <script src="scripts/jquery-2.0.1.min.js"></script>
+    <script src="scripts/FlyControls.js"></script>
+    <script src="scripts/stats.min.js"></script>
+    <link type="text/css" href="css/rgb123.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="stats" class="stats"></div>
+    <!--Adds a little stat counter to page-->
+    <header class="top">
+
+        <div id="centhead" class="centhead">
+            <h1>RGB 123</h1>
+        </div>
+
+        <div id="lefthead" class="lefthead">
+            <img src="media/save.png" alt="Save Button" />
+            <img src="media/help.png" alt="Help Button" />
+        </div>
+
+        <div id="righthead" class="righthead">
+            <img src="media/cylinderoff.png" alt="Cylinder Explore" />
+            <img src="media/cubeoff.png" alt="Cube Explore" />
+            <img src="media/planeoff.png" alt="Plane Explore" />
+        </div>
+
+    </header>
+
+    <footer class="bottom">
+        <div id="palette" class="palette">
+            <div id="s1" class="swatch">
+                <p>RGB: (0,0,0)<br />Hex:(#FFFFFF)</p>
+            </div>
+            <div id="s2" class="swatch">
+                <p>RGB: (0,0,0)<br />Hex:(#FFFFFF)</p>
+            </div>
+            <div id="s3" class="swatch">
+                <p>RGB: (0,0,0)<br />Hex:(#FFFFFF)</p>
+            </div>
+            <div id="s4" class="swatch">
+                <p>RGB: (0,0,0)<br />Hex:(#FFFFFF)</p>
+            </div>
+            <div id="s5" class="swatch">
+                <p>RGB: (0,0,0)<br />Hex:(#FFFFFF)</p>
+            </div>
+            <div id="s6" class="swatch">
+                <p>RGB: (0,0,0)<br />Hex:(#FFFFFF)</p>
+            </div>
+            <div id="s7" class="swatch">
+                <p>RGB: (0,0,0)<br />Hex:(#FFFFFF)</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        //Defining global variables like a bawse
+        var container, stats;
+
+        var camera, scene, renderer;
+
+        var mouseX = 0,
+            mouseY = 0;
+
+
+
+        ////This finds the points in an object in this case the Cube made
+        //var v3 = function (x, y, z) {
+        //    return new THREE.Vertex(new THREE.Vector3(x, y, z));
+        //}
+
+
+        var SCREEN_WIDTH = window.innerWidth,
+            SCREEN_HEIGHT = window.innerHeight;
+
+        //These are defined so I don't need to figure out how to put this equation everywhere.
+        var windowHalfX = SCREEN_WIDTH / 2;
+        var windowHalfY = SCREEN_HEIGHT / 2;
+        var geometry = new THREE.Object3D();
+
+        //calling my main functions
+        init();
+        animate(); //this function is like a screen updater.
+
+
+        function init() {
+
+            container = document.createElement('div');
+            document.body.appendChild(container);
+
+            camera = new THREE.PerspectiveCamera(50, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000);
+            camera.position.z = 100;
+
+            scene = new THREE.Scene();
+
+
+
+            for (var i = 0; i < 5000; i++) {
+                var swatchgeo = new THREE.CubeGeometry(30, 30, 30);
+                var swatchmat = new THREE.MeshBasicMaterial();
+                var swatch = new THREE.Mesh(swatchgeo, swatchmat);
+
+                //lets get some random x y z coordinates for the swatches
+                swatch.position.x = Math.random() * 2000 - 1000;
+                swatch.position.y = Math.random() * 2000 - 1000;
+                swatch.position.z = Math.random() * 2000 - 1000;
+
+                //Now lets use the swatch position to determin the material color like a BAWSE!
+                swatchmat.color.setRGB(swatch.position.x / 2000, swatch.position.y / 2000, swatch.position.z / 2000);
+
+                swatch.matrixAutoUpdate = false;
+                swatch.updateMatrix();
+
+                //Adds all swatch objects to the single geometry
+                geometry.add(swatch);
+
+            }
+
+            // This adds geometry to the scene. Its easier on the computer with 1 object
+            scene.add(geometry);
+
+            //makes a WegGl canvas, set it to screen size, adds it to container...which define earlier as a div POW!
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+            renderer.sortObjects = false;
+
+
+            container.appendChild(renderer.domElement);
+
+            stats =
+        new Stats(); //stats counter, dunno how it works but its a handy library to determine performance issues.
+            container.appendChild(stats.domElement);
+
+            document.addEventListener('mousemove', onDocumentMouseMove, false); //
+            window.addEventListener('resize', onWindowResize, false);
+
+
+        }
+
+
+        //This will resize the canvas/renderer scene when the user changes window size. PAPOW!
+
+        function onWindowResize() {
+
+            SCREEN_WIDTH = window.innerWidth;
+            SCREEN_HEIGHT = window.innerHeight;
+
+            renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+            camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+            camera.updateProjectionMatrix(); //Basically saying update what the camera is lookin at/projecting to.
+
+            windowHalfX = SCREEN_WIDTH / 2;
+            windowHalfY = SCREEN_HEIGHT / 2;
+
+        }
+
+        function onDocumentMouseMove(event) {
+            //Mouse coordinates triggered constanly by event listener subtracted by the window size
+            //multiplied to give more camera range.
+            mouseX = (event.clientX - windowHalfX) * 5;
+            mouseY = (event.clientY - windowHalfY) * 5;
+
+        }
+
+
+        //This function renders the scene every second (60 seconds per frame)
+        function animate() {
+
+            requestAnimationFrame(animate);
+
+            render();
+            stats.update();
+
+        }
+
+        function render() {
+
+            //These two  variables combined with the geometry.rotation lines below make the cube geometry rotate
+            //They basically use the current time to rotate the x y znd z axis. 
+            var time = Date.now() * 0.001;
+
+            var rx = Math.sin(time * 0.7) * 0.5,
+                ry = Math.sin(time * 0.3) * 0.5,
+                rz = Math.sin(time * 0.2) * 0.5;
+
+            //mouse movement sets cam position, cut in half so its not too fast. Also mouseY is negative to
+            //create a mor natural feel with the camera...more like a video game.
+            camera.position.x += (mouseX - camera.position.x) * .05;
+            camera.position.y += (-mouseY - camera.position.y) * .05;
+
+            //directs where the camera will look at...it looks at the center of whatever is put here.
+            camera.lookAt(geometry.position);
+
+            geometry.rotation.x = rx;
+            geometry.rotation.y = ry;
+            geometry.rotation.z = rz;
+
+            renderer.render(scene, camera);
+
+
+        }
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Test 02: Making Planes</title>
+    <script src="scripts/Three.js"></script>
+    <script src="scripts/jquery-2.0.1.min.js"></script>
+    <script src="scripts/FlyControls.js"></script>
+    <script src="scripts/stats.min.js"></script>
+    <link type="text/css" href="css/rgb123.css" rel="stylesheet"/>
+</head>
+<body>
+
+    <script>
+        //Defining global variables like a bawse
+        var container, stats;
+
+        var camera, scene, renderer;
+
+        var swatch, geometry;
+
+        var mouseX = 0, mouseY = 0; 
+
+        var SCREEN_WIDTH = window.innerWidth,
+            SCREEN_HEIGHT = window.innerHeight;
+
+        //These are defined so I don't need to figure out how to put this equation everywhere.
+        var windowHalfX = SCREEN_WIDTH / 2;
+        var windowHalfY = SCREEN_HEIGHT / 2;
+
+        
+        //calling my main functions
+        init();
+        animate(); //this function is like a screen updater.
+
+
+        function init() {
+
+            container = document.createElement('div');
+            document.body.appendChild(container);
+
+            camera = new THREE.PerspectiveCamera(50, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 20000);
+            camera.position.z = 3000;
+
+            scene = new THREE.Scene();
+
+            
+
+            var geometry = new THREE.PlaneGeometry(1, 1, 1, 1); //defines geometry as a particular shape
+            var material = new THREE.MeshBasicMaterial({ color: 0x057075 }); // defines a flat luminate and pure colored material AND my fav color tealzzzzzz!
+            var swatch = new THREE.Mesh(geometry, material); //defines a new mesh (combo of material and shape) 
+    
+            
+
+            //A for loop that creates a new swatch and randomly changes it position (within a range) then places it in canvas
+            for (var i = 0; i < 9000; i++) {
+
+                var swatch = new THREE.Mesh(geometry, material);
+
+                swatch.position.x = Math.random() * 10000 - 5000;
+                swatch.position.y = Math.random() * 10000 - 5000;
+                swatch.position.z = Math.random() * 10000 - 5000;
+
+                //The next two lines are if I wanted to randomize the rotation
+                //swatch.rotation.x = Math.random() * 2 * Math.PI;
+                //swatch.rotation.y = Math.random() * 2 * Math.PI;
+                swatch.scale.x = swatch.scale.y = swatch.scale.z = Math.random() * 50 + 100;
+
+                swatch.matrixAutoUpdate = false;
+                swatch.updateMatrix();
+
+                scene.add(swatch);
+
+            }
+
+            //makes a WegGl canvas, set it to screen size, adds it to container...which define earlier as a div POW!
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+            container.appendChild(renderer.domElement);
+
+            stats = new Stats(); //stats counter, dunno how it works but its a handy library to determine performance issues.
+            container.appendChild(stats.domElement);
+
+            document.addEventListener('mousemove', onDocumentMouseMove, false); //
+            window.addEventListener('resize', onWindowResize, false);
+
+
+        }
+
+
+            //THis will resize the canvas/renderer scene when the user changes window size. PAPOW!
+
+            function onWindowResize() {
+
+                SCREEN_WIDTH = window.innerWidth;
+                SCREEN_HEIGHT = window.innerHeight;
+
+                renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+                camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+                camera.updateProjectionMatrix(); //Basically saying update what the camera is lookin at/projecting to.
+
+                windowHalfX = SCREEN_WIDTH / 2;
+                windowHalfY = SCREEN_HEIGHT / 2;
+
+            }
+
+            function onDocumentMouseMove(event) {
+                //Mouse coordinates triggered constanly by event listener subtracted by the window size
+                //multiplied to give more camera range.
+                mouseX = (event.clientX - windowHalfX) * 10;
+                mouseY = (event.clientY - windowHalfY) * 10;
+
+            }
+
+
+            //This function renders the scene every second (60 seconds per frame)
+            function animate() {
+
+                requestAnimationFrame(animate);
+
+                render();
+                stats.update();
+
+            }
+
+            function render() {
+                //mouse movement sets cam position, cut in half so its not too fast. Also mouseY is negative to
+                //create a mor natural feel with the camera...more like a video game.
+                camera.position.x += (mouseX - camera.position.x) * .05;
+                camera.position.y += (-mouseY - camera.position.y) * .05;
+
+                camera.lookAt(scene.position);//always look at the center of the scene
+
+                renderer.render(scene, camera);
+
+            }
+    
+    </script>
+    <!--Adds a little stat counter to page-->
+    <div id="stats" style="width: 80px; opacity: 0.9; cursor: pointer;"></div> 
+  </body>
+</html>
